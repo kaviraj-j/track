@@ -16,7 +16,8 @@ func main() {
 
 	switch args[1] {
 	case "ls", "list":
-		tasks, err := store.ListTasks()
+		filter, _ := getTagValue("filter", args)
+		tasks, err := store.ListTasks(filter)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -42,4 +43,18 @@ func printTasks(tasks []store.Task) {
 		createdAtTime, _ := time.Parse(time.RFC3339, t.CreatedAt)
 		fmt.Printf("%s  -  %s\n", createdAtTime.Local().Format("Mon Jan 2"), t.Title)
 	}
+}
+
+func getTagValue(tagName string, args []string) (value string, found bool) {
+	for i, arg := range args {
+		if arg == "--"+tagName {
+			if len(args) > i+1 {
+				value = args[i+1]
+				found = true
+				return
+			}
+			return
+		}
+	}
+	return
 }

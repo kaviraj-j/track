@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
+	"time"
 )
 
 type Task struct {
@@ -25,10 +27,58 @@ func AddToList(task Task) error {
 	return updateFileContent(tasks)
 }
 
-func ListTasks() ([]Task, error) {
-	return getFileContent()
-}
+func ListTasks(filter string) ([]Task, error) {
+	var validFilters = []string{
+		"today", "month", "year",
+	}
 
+	if filter != "" {
+		if slices.Index(validFilters, filter) == -1 {
+			return nil, errors.New("invalid filter")
+		}
+	}
+
+	tasks, err := getFileContent()
+	if err != nil || filter == "" {
+		return tasks, err
+	}
+
+	var filteredTasks []Task
+	now := time.Now()
+
+	for _, t := range tasks {
+		createdAt, err := time.Parse(time.RFC3339, t.CreatedAt)
+		if err != nil {
+			continue // skip invalid timestamps
+		}
+
+		createdAt = createdAt.Local()
+		canAdd := false
+
+		switch filter {
+
+		case "today":
+			canAdd =
+				createdAt.Year() == now.Year() &&
+					createdAt.YearDay() == now.YearDay()
+
+		case "month":
+			canAdd =
+				createdAt.Year() == now.Year() &&
+					createdAt.Month() == now.Month()
+
+		case "year":
+			canAdd =
+				createdAt.Year() == now.Year()
+		}
+
+		if canAdd {
+			filteredTasks = append(filteredTasks, t)
+		}
+	}
+
+	return filteredTasks, nil
+}
 func getFileContent() ([]Task, error) {
 	filePath, err := getFilePath()
 	if err != nil {
