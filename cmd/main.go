@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"track/internal/export"
 	"track/internal/store"
 )
 
@@ -22,6 +23,15 @@ func main() {
 			log.Fatal(err)
 		}
 		printTasks(tasks)
+	case "export":
+		filter, _ := getTagValue("filter", args)
+		tasks, err := store.ListTasks(filter)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if export.ExportToCSV(tasks) != nil {
+			log.Fatal("failed to export tasks")
+		}
 
 	case "add":
 		if len(args) < 3 {

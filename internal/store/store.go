@@ -126,9 +126,12 @@ func updateFileContent(tasks []Task) error {
 }
 
 func getFilePath() (string, error) {
-	wd, err := os.Getwd()
+	exePath, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(wd, fileName), nil
+
+	exeDir := filepath.Dir(exePath)
+
+	return filepath.Join(exeDir, fileName), nil
 }
